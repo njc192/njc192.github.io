@@ -1,14 +1,15 @@
- <head>
-    <meta charset="utf-8">
-    <title>iFixit Project</title>
-    <style>
+<html>
+<head>
+ <title>iFixit Project</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
 * {
   box-sizing: border-box;
-  }
+}
 
 body {
   font: 16px Arial;  
-  }
+}
 
 /*the container must be positioned relative:*/
 .autocomplete {
@@ -64,19 +65,20 @@ input[type=submit] {
   color: #ffffff; 
 }
 </style>
-    <script src="index.js" defer></script>
-  </head>
-  <body>
-    <header>
-      <h1>Hello</h1>
-   </header>
+<script src="index.js" defer></script>
+</head>     
+<body>
 
-      <form autocomplete="off" action="/action_page.php">
-       <div class="autocomplete" style="width:300px;">
-   	 <input id="myInput" type="text" name="myCountry" placeholder="Search">
-       </div>
-       <input type="submit">
+<h2>Which devices do you own?</h2>
+
+<p>Lets find them:</p>
+
+<!--Make sure the form has the autocomplete function switched off:-->
+<form autocomplete="off" action="/action_page.php">
+  <div class="autocomplete" style="width:300px;">
+    <input id="myInput" type="text" name="myCountry" placeholder="Search">
+  </div>
+  <input type="submit">
 </form>
-
-
-  </body>
+</body>
+</html>
