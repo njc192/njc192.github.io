@@ -112,9 +112,9 @@ function autocomplete(inp) {
   }
 }
 
-function removeItem(item)
+function removeItem()
 {
-  console.log(item)
+  console.log("hey i want to remove something")
 }
 
 submit.addEventListener("click",function(event)
@@ -133,15 +133,59 @@ function addToList()
       tempVal = arr[i]
       if(myInput.value === tempVal["display_title"] )
       {
-        var tempItem = document.createElement("li");
-        tempItem.setAttribute("class", "grabBagItems")
-        tempItem.textContent = tempVal["display_title"]
-        grabBag.appendChild(tempItem)
+        if(firstInstance(tempVal["display_title"]))
+        {
+          var itemName = document.createElement("li"); 
+          itemName.setAttribute("class","itemName");
+          itemName.textContent = tempVal["display_title"];
+
+          var listItem = document.createElement("li");
+          listItem.setAttribute("class", "itemInfo")
+          var info = document.createElement("a")
+          info.setAttribute("class", "info");
+          info.setAttribute("href",tempVal["url"]);
+          info.setAttribute("target","_blank");
+          info.textContent = "info";
+
+          var spacer = document.createElement("span");
+          spacer.textContent = " | ";
+
+          var remove = document.createElement("a");
+          remove.setAttribute("class","remove")
+          remove.setAttribute("href","javascript:removeItem();");
+          remove.textContent = "remove";
+
+ 
+          listItem.appendChild(info);
+          listItem.append(spacer);
+          listItem.append(remove);
+
+          grabBag.appendChild(itemName);
+          grabBag.appendChild(listItem);
+        }
+
       }
     }
   }
 }
 
+function firstInstance(checkString)
+{
+  var child = grabBag.children;
+  if(child == null)
+    return true;
+  if(child.length === 0)
+    return true;
+  for(let i = 0; i < grabBag.children.length; i++)
+  {
+    if(child[i].textContent === checkString)
+    {
+      console.log("this is a duplicate")
+      return false;
+    }
+  }
+  return true;
+}
+
 /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
 autocomplete(document.getElementById("myInput"));
- $('#remove').click(function(){removeItem($(this));return false;});
