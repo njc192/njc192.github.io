@@ -1,11 +1,13 @@
 var arr = [];
+const myInput = document.querySelector(".myInput");
+const submit = document.querySelector(".submit");
+const grabBag = document.querySelector(".items");
 function autocomplete(inp) {
   /*the autocomplete function takes two arguments,
   the text field element and an array of possible autocompleted values:*/
   var currentFocus;
   /*execute a function when someone writes in the text field:*/
   inp.addEventListener("input", function(e) {
-    getJson(inp.value);
       var a, b, i, val = this.value;
       /*close any already open lists of autocompleted values*/
       closeAllLists();
@@ -17,32 +19,13 @@ function autocomplete(inp) {
       a.setAttribute("class", "autocomplete-items");
       /*append the DIV element as a child of the autocomplete container:*/
       this.parentNode.appendChild(a);
+      getJson(inp,a,b)
       /*for each item in the array...*/
-      for (i = 0; i < arr.length; i++) {
-        /*check if the item starts with the same letters as the text field value:*/
-        console.log(arr[i]);
-        if (arr[i]["display_title"].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-          /*create a DIV element for each matching element:*/
-          b = document.createElement("DIV");
-          /*make the matching letters bold:*/
-          b.innerHTML = "<strong>" + arr[i]["display_title"].substr(0, val.length) + "</strong>";
-          b.innerHTML += arr[i]["display_title"].substr(val.length);
-          /*insert a input field that will hold the current array item's value:*/
-          b.innerHTML += "<input type='hidden' value='" + arr[i]["display_title"] + "'>";
-          /*execute a function when someone clicks on the item value (DIV element):*/
-          b.addEventListener("click", function(e) {
-              /*insert the value for the autocomplete text field:*/
-              inp.value = this.getElementsByTagName("input")[0].value;
-              /*close the list of autocompleted values,
-              (or any other open lists of autocompleted values:*/
-              closeAllLists();
-          });
-          a.appendChild(b);
-        }
-      }
+   
   });
   /*execute a function presses a key on the keyboard:*/
   inp.addEventListener("keydown", function(e) {
+
       var x = document.getElementById(this.id + "autocomplete-list");
       if (x) x = x.getElementsByTagName("div");
       if (e.keyCode == 40) {
@@ -97,14 +80,68 @@ function autocomplete(inp) {
       closeAllLists(e.target);
   });
 
-  async function getJson(inp)
+  async function getJson(inp,a,b)
   {
-      const url = "https://www.ifixit.com/api/2.0/suggest/" + inp + "?doctypes=device";
+    console.log(inp.value)
+    if(!inp.value.endsWith(" "))
+    {
+      const url = "https://www.ifixit.com/api/2.0/suggest/" + inp.value + "?doctypes=device";
       const response = await fetch(url);
       const myJson = await response.json();
       arr = myJson["results"];
+    }
+
+       for (i = 0; i < arr.length; i++) {
+        /*check if the item starts with the same letters as the text field value:*/
+         /*create a DIV element for each matching element:*/
+          b = document.createElement("DIV");
+          /*make the matching letters bold:*/
+          b.innerHTML = arr[i]["display_title"]
+          /*insert a input field that will hold the current array item's value:*/
+          b.innerHTML += "<input type='hidden' value='" + arr[i]["display_title"] + "'>";
+          /*execute a function when someone clicks on the item value (DIV element):*/
+          b.addEventListener("click", function(e) {
+              /*insert the value for the autocomplete text field:*/
+              inp.value = this.getElementsByTagName("input")[0].value;
+              /*close the list of autocompleted values,
+              (or any other open lists of autocompleted values:*/
+              closeAllLists();
+          });
+          a.appendChild(b);
+      }
+  }
+}
+
+function removeItem(item)
+{
+  console.log(item)
+}
+
+submit.addEventListener("click",function(event)
+{
+  event.preventDefault();
+  addToList();
+});
+
+function addToList()
+{
+  if(myInput !== null)
+  {
+    var tempVal;
+    for(let i =0 ; i < arr.length; i++)
+    {
+      tempVal = arr[i]
+      if(myInput.value === tempVal["display_title"] )
+      {
+        var tempItem = document.createElement("li");
+        tempItem.setAttribute("class", "grabBagItems")
+        tempItem.textContent = tempVal["display_title"]
+        grabBag.appendChild(tempItem)
+      }
+    }
   }
 }
 
 /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
 autocomplete(document.getElementById("myInput"));
+ $('#remove').click(function(){removeItem($(this));return false;});
