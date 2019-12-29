@@ -112,9 +112,10 @@ function autocomplete(inp) {
   }
 }
 
-function removeItem()
+function removeItem(item)
 {
   console.log("hey i want to remove something")
+  console.log(item)
 }
 
 submit.addEventListener("click",function(event)
@@ -152,8 +153,15 @@ function addToList()
 
           var remove = document.createElement("a");
           remove.setAttribute("class","remove")
-          remove.setAttribute("href","javascript:removeItem();");
+          remove.setAttribute("href","#");
+          remove.setAttribute("title",tempVal["display_title"]);
           remove.textContent = "remove";
+
+          remove.addEventListener("click",function(e)
+          {
+            e.preventDefault();
+            removeItem(remove.title);
+          });
 
  
           listItem.appendChild(info);
