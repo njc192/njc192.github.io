@@ -1,7 +1,67 @@
+
+const DB_VERSION = 1;
+const DB_STORE_NAME = "storedItems"
+
+var db;
+
 var arr = [];
 const myInput = document.querySelector(".myInput");
 const submit = document.querySelector(".submit");
 const grabBag = document.querySelector(".items");
+
+function openDb()
+{
+  console.log("openDb...");
+  var req = indexedDB.open(DB_STORE_NAME,DB_VERSION);
+  req.onsuccess = function(e)
+  {
+    db = req.result;
+    console.log(db)
+    console.log("openDb DONE");
+    updateList();
+  };
+
+  req.onerror = function(e)
+  {
+    console.error("openDb:", e.target.errorCode);
+  };
+
+  req.onupgradeneeded = function(e)
+  {
+    console.log("openDb.onupgradeneeded");
+    var store = e.currentTarget.result.createObjectStore(DB_STORE_NAME, {keyPath: "name"});
+    store.createIndex("url","url",{unique:true});
+  }
+
+}
+
+
+function updateList()
+{
+  var transaction = db.transaction(DB_STORE_NAME);
+  var objectStore = transaction.objectStore(DB_STORE_NAME);
+  objectStore.openCursor().onsuccess = function(e)
+  {
+    var cursor = e.target.result;
+    if(cursor)
+    {
+      var request = objectStore.get(cursor.key);
+      request.onerror = function(e)
+      {
+        console.log("could not find key?");
+      }
+      request.onsuccess = function(e)
+      {
+        addToList(request.result.name,request.result.url,null);
+      }
+      cursor.continue();
+    }
+    else{
+      console.log("no more entries?")
+    }
+  }
+}
+
 function autocomplete(inp) {
   /*the autocomplete function takes two arguments,
   the text field element and an array of possible autocompleted values:*/
@@ -82,7 +142,6 @@ function autocomplete(inp) {
 
   async function getJson(inp,a,b)
   {
-    console.log(inp.value)
     if(!inp.value.endsWith(" "))
     {
       const url = "https://www.ifixit.com/api/2.0/suggest/" + inp.value + "?doctypes=device";
@@ -112,69 +171,104 @@ function autocomplete(inp) {
   }
 }
 
-function removeItem(item)
-{
-  console.log("hey i want to remove something")
-  console.log(item)
-}
 
 submit.addEventListener("click",function(event)
 {
   event.preventDefault();
-  addToList();
+    if(myInput !== null)
+    {
+      var tempVal;
+      for(let i =0 ; i < arr.length; i++)
+      {
+        tempVal = arr[i];
+        if(myInput.value === tempVal["display_title"] )
+        {
+          if(firstInstance(tempVal["display_title"]))
+          {
+            addToList(tempVal["display_title"],tempVal["url"],tempVal)
+          }
+
+        }
+      }
+  }
 });
 
-function addToList()
+
+function addToList(name,url,tempVal)
 {
-  if(myInput !== null)
-  {
-    var tempVal;
-    for(let i =0 ; i < arr.length; i++)
+    var itemName = document.createElement("li"); 
+    itemName.setAttribute("class","itemName");
+    itemName.setAttribute("id",name);
+    itemName.textContent = name;
+
+    var listItem = document.createElement("li");
+    listItem.setAttribute("class", "itemInfo")
+    listItem.setAttribute("id",name);
+    var info = document.createElement("a")
+    info.setAttribute("class", "info");
+    info.setAttribute("href",url);
+    info.setAttribute("target","_blank");
+    info.textContent = "info";
+
+    var spacer = document.createElement("span");
+    spacer.setAttribute("id",name);
+    spacer.textContent = " | ";
+
+    var remove = document.createElement("a");
+    remove.setAttribute("id",name);
+    remove.setAttribute("class","remove")
+    remove.setAttribute("href","#");
+    remove.setAttribute("title",name);
+    remove.textContent = "remove";
+
+    remove.addEventListener("click",function(e)
     {
-      tempVal = arr[i]
-      if(myInput.value === tempVal["display_title"] )
-      {
-        if(firstInstance(tempVal["display_title"]))
-        {
-          var itemName = document.createElement("li"); 
-          itemName.setAttribute("class","itemName");
-          itemName.textContent = tempVal["display_title"];
+      e.preventDefault();
+      removeItem(remove.title);
+    });
 
-          var listItem = document.createElement("li");
-          listItem.setAttribute("class", "itemInfo")
-          var info = document.createElement("a")
-          info.setAttribute("class", "info");
-          info.setAttribute("href",tempVal["url"]);
-          info.setAttribute("target","_blank");
-          info.textContent = "info";
 
-          var spacer = document.createElement("span");
-          spacer.textContent = " | ";
+    listItem.appendChild(info);
+    listItem.append(spacer);
+    listItem.append(remove);
 
-          var remove = document.createElement("a");
-          remove.setAttribute("class","remove")
-          remove.setAttribute("href","#");
-          remove.setAttribute("title",tempVal["display_title"]);
-          remove.textContent = "remove";
+    grabBag.appendChild(itemName);
+    grabBag.appendChild(listItem);
+    if(tempVal !== null)
+    {
+      addItemToDb(tempVal);
 
-          remove.addEventListener("click",function(e)
-          {
-            e.preventDefault();
-            removeItem(remove.title);
-          });
-
- 
-          listItem.appendChild(info);
-          listItem.append(spacer);
-          listItem.append(remove);
-
-          grabBag.appendChild(itemName);
-          grabBag.appendChild(listItem);
-        }
-
-      }
     }
+}
+
+function addItemToDb(item)
+{
+  var obj = {name: item["display_title"], url: item["url"]};
+  var transaction = db.transaction(DB_STORE_NAME,"readwrite");
+
+  transaction.onsuccess = function(e)
+  {
+    console.log("successsss");
   }
+  transaction.oncomplete = function(e)
+  {
+    console.log("completed");
+  }
+
+  transaction.onerror = function(e)
+  {
+    console.log("duplicate?");
+  }
+  
+  var objectStore = transaction.objectStore(DB_STORE_NAME);
+  var request = objectStore.add(obj);
+  request.onsuccess = function(e)
+  {
+    console.log("hey dude i think we added something")
+    console.log(e.target.result);
+    console.log(e.target.result.url)
+  }
+
 }
 
 function firstInstance(checkString)
@@ -188,6 +282,7 @@ function firstInstance(checkString)
   {
     if(child[i].textContent === checkString)
     {
+      console.log(child[i].textContent)
       console.log("this is a duplicate")
       return false;
     }
@@ -195,5 +290,24 @@ function firstInstance(checkString)
   return true;
 }
 
+
+function removeItem(item)
+{
+  var val = document.getElementById(item);
+  val.parentNode.removeChild(val);
+  val = document.getElementById(item);
+  val.parentNode.removeChild(val);
+
+  var request = db.transaction(DB_STORE_NAME,"readwrite")
+                .objectStore(DB_STORE_NAME)
+                .delete(item);
+  
+  
+}
+
+
+
 /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+openDb();
+
 autocomplete(document.getElementById("myInput"));
